@@ -1,0 +1,15 @@
+{
+  "version": 2,
+  "dgSpecHash": "GJayXNRy4KSTAg5FzB8lMeki5gRy+EZUGKmVD216iI+SZNh5GaWhOTpaHDBcGPEBOwdIgP/bF1Pcthr9uE2WpQ==",
+  "success": true,
+  "projectFilePath": "C:\\Users\\furqa\\FirstWeb\\FirstWeb.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\furqa\\.nuget\\packages\\microsoft.extensions.apidescription.server\\6.0.5\\microsoft.extensions.apidescription.server.6.0.5.nupkg.sha512",
+    "C:\\Users\\furqa\\.nuget\\packages\\microsoft.openapi\\1.2.3\\microsoft.openapi.1.2.3.nupkg.sha512",
+    "C:\\Users\\furqa\\.nuget\\packages\\swashbuckle.aspnetcore\\6.5.0\\swashbuckle.aspnetcore.6.5.0.nupkg.sha512",
+    "C:\\Users\\furqa\\.nuget\\packages\\swashbuckle.aspnetcore.swagger\\6.5.0\\swashbuckle.aspnetcore.swagger.6.5.0.nupkg.sha512",
+    "C:\\Users\\furqa\\.nuget\\packages\\swashbuckle.aspnetcore.swaggergen\\6.5.0\\swashbuckle.aspnetcore.swaggergen.6.5.0.nupkg.sha512",
+    "C:\\Users\\furqa\\.nuget\\packages\\swashbuckle.aspnetcore.swaggerui\\6.5.0\\swashbuckle.aspnetcore.swaggerui.6.5.0.nupkg.sha512"
+  ],
+  "logs": []
+}
