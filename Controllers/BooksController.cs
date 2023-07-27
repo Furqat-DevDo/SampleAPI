@@ -9,7 +9,7 @@ namespace FirstWeb.Controllers;
 [Produces("application/json")]
 public class BooksController : ControllerBase
 {
-    private static int count = 0;
+    private static int count = 1;
     private static List<Book> Books = new ();
 
     /// <summary>
