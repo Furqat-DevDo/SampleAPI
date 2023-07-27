@@ -4,6 +4,11 @@
         <name>FirstWeb</name>
     </assembly>
     <members>
+        <member name="T:FirstWeb.Controllers.BooksController">
+            <summary>
+            
+            </summary>
+        </member>
         <member name="M:FirstWeb.Controllers.BooksController.CreateBook(FirstWeb.DTOS.CreateBookDTO)">
             <summary>
             You Can create a new book Model.
@@ -11,13 +16,13 @@
             <param name="bookModel"></param>
             <remarks>
             POST/TODO
-                  {
-                     "name": "Oq Kema",
-                     "price": 25.02,
-                     "authorName": "Cho'lpon",
-                     "writerId": 12,
-                     "genre": [0,1]
-                  }
+            {
+               "name": "Oq Kema",
+               "price": 25.02,
+               "authorName": "Cho'lpon",
+               "writerId": 12,
+               "genre": [0,1]
+            }
             </remarks>
             <response code="200">Returns the newly created book</response>
         </member>

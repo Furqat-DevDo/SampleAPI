@@ -1,4 +1,6 @@
-﻿namespace FirstWeb.Models;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+
+namespace FirstWeb.Models;
 
 public class Book
 {
@@ -7,5 +9,7 @@ public class Book
     public float Price { get; set; }
     public string AuthorName { get; set; }
     public int WriterId { get; set; }
+    
+    [NotMapped]
     public List<Genre> Genres { get; set; } = new();
 }
