@@ -1,6 +1,7 @@
 namespace FirstWeb.Models;
-public enum Genre
+
+public class Genre
 {
-    Action,
-    Comedy,
+    public int Id { get; set; }
+    public string Name { get; set; }
 }

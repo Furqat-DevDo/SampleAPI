@@ -1,6 +1,7 @@
 ﻿using FirstWeb.DTOS;
 using FirstWeb.Models;
 using Microsoft.AspNetCore.Mvc;
+using System.Data.SQLite;
 
 namespace FirstWeb.Controllers;
 
@@ -9,47 +10,58 @@ namespace FirstWeb.Controllers;
 [Produces("application/json")]
 public class BooksController : ControllerBase
 {
-    private static int count = 1;
-    private static List<Book> Books = new ();
+    private const string connection = "Data source = mydata.db; Version =3";
 
-    /// <summary>
-    /// You Can create a new book Model.
-    /// </summary>
-    /// <param name="bookModel"></param>
-    /// <remarks>
-    /// POST/TODO
-    ///       {
-    ///          "name": "Oq Kema",
-    ///          "price": 25.02,
-    ///          "authorName": "Cho'lpon",
-    ///          "writerId": 12,
-    ///          "genre": [0,1]
-    ///       }
-    /// </remarks>
-    /// <response code="200">Returns the newly created book</response>
+    private readonly List<string> createTableQueries = new ()
+    {
+        "CREATE TABLE IF NOT EXISTS Books (Id INTEGER PRIMARY KEY, Name TEXT, Price REAL, AuthorName TEXT, WriterId INTEGER)",
+        "CREATE TABLE IF NOT EXISTS Genres(Id INT PRIMARY KEY,Name NVARCHAR(100) NOT NULL);",
+        "CREATE TABLE IF NOT EXISTS BookGenres(BookId INT NOT NULL,GenreId INT NOT NULL,PRIMARY KEY (BookId, GenreId),FOREIGN KEY (BookId) " +
+        "REFERENCES Books (Id),FOREIGN KEY (GenreId) REFERENCES Genres (Id));"
+    };
+    
+    private void CreateTables()
+    {
+        using SQLiteConnection conn = new SQLiteConnection(connection);
+
+        conn.Open();
+
+        foreach (var query in createTableQueries)
+        {
+            using SQLiteCommand command = new SQLiteCommand(query, conn);
+            command.ExecuteNonQuery();
+        }
+    }
+
+
     [HttpPost]
     [ProducesResponseType(typeof(Book),200)]
     public IActionResult CreateBook(CreateBookDTO bookModel)
     {
-        var newBook = new Book()
+        CreateTables();
+
+        using SQLiteConnection conn = new SQLiteConnection(connection);
+        conn.Open();
+
+        string insertQuery = "INSERT INTO Books (Name, Price, AuthorName,WriterId) VALUES (@name, @price, @author,@writerId)";
+
+        using (SQLiteCommand command = new SQLiteCommand(insertQuery, conn))
         {
-            Id = count++,
-            AuthorName = bookModel.AuthorName,
-            Name = bookModel.Name,
-            Genres = bookModel.Genre,
-            Price = bookModel.Price,
-            WriterId = bookModel.WriterId
-        };
-        
-        Books.Add(newBook);
-        
-        return Ok(newBook);
+            command.Parameters.AddWithValue("@name", $"{bookModel.Name}");
+            command.Parameters.AddWithValue("@price", bookModel.Price);
+            command.Parameters.AddWithValue("@author", $"{bookModel.AuthorName}");
+            command.Parameters.AddWithValue("@writerId",$"{bookModel.WriterId}");
+            command.ExecuteNonQuery();
+        }
+
+        return Ok();
     }
 
     [HttpGet]
     public IActionResult GetBooks()
     {
-        return Ok(Books);
+        CreateTables();
+        return Ok();
     }
     
     /// <summary>
@@ -62,35 +74,23 @@ public class BooksController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public IActionResult GetBook(int id)
     {
-        var book = Books.FirstOrDefault(x => x.Id == id);
-        return book is null ? NotFound() :  Ok(book);
+        CreateTables();
+        return NotFound();
     }
 
     [HttpPut("{id}")]
     public IActionResult UpdateBook(int id,CreateBookDTO updateModel)
     {
-        var book = Books.FirstOrDefault(x => x.Id == id);
+        CreateTables();
         
-        if (book == null) return NotFound($"Book with id: {id} not found");
-        
-        book.Name = updateModel.Name;
-        book.AuthorName = updateModel.AuthorName;
-        book.WriterId = updateModel.WriterId;
-        book.Genres = updateModel.Genre;
-        book.Price = updateModel.Price;
-        
-        return Ok(book);
+        return Ok();
     }
 
     [HttpDelete("{id}")]
     public IActionResult DeleteBook(int id)
     {
-        var book = Books.FirstOrDefault(x => x.Id == id);
-        if (book == null)
-        {
-            return NotFound("false");
-        }
-        Books.Remove(book);
+        CreateTables();
+
         return Ok(true);
     }
 }

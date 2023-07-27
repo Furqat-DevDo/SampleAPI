@@ -4,23 +4,6 @@
         <name>FirstWeb</name>
     </assembly>
     <members>
-        <member name="M:FirstWeb.Controllers.BooksController.CreateBook(FirstWeb.DTOS.CreateBookDTO)">
-            <summary>
-            You Can create a new book Model.
-            </summary>
-            <param name="bookModel"></param>
-            <remarks>
-            POST/TODO
-                  {
-                     "name": "Oq Kema",
-                     "price": 25.02,
-                     "authorName": "Cho'lpon",
-                     "writerId": 12,
-                     "genre": [0,1]
-                  }
-            </remarks>
-            <response code="200">Returns the newly created book</response>
-        </member>
         <member name="M:FirstWeb.Controllers.BooksController.GetBook(System.Int32)">
             <summary>
             Will return a book or not found result.
