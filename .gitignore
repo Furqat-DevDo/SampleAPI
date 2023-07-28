@@ -2,6 +2,15 @@
 # This .gitignore file was automatically created by Microsoft(R) Visual Studio.
 ################################################################################
 
-/.vs
-/.obj
+/.vs/
+/.obj/
+/.bin/
 
+/.vs/FirstWeb/FileContentIndex/10c9b669-3a56-463c-83ea-8b6c6b84daaa.vsidx
+/.vs/FirstWeb/FileContentIndex/14df1217-371d-4270-8fa5-b1571b4ce647.vsidx
+/.vs/FirstWeb/FileContentIndex/1bb9a5b5-5bb2-4749-bb84-6ba21dd4dcfd.vsidx
+/.vs/FirstWeb/FileContentIndex/e32015af-c90e-4dc1-9a85-e18271335c87.vsidx
+/.vs/FirstWeb/v17/.futdcache.v2
+/.vs/FirstWeb/v17/.suo
+/.vs/FirstWeb/FileContentIndex/02706678-202c-449e-a146-d822e46d3f68.vsidx
+*.vsidx

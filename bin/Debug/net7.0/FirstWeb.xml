@@ -4,28 +4,42 @@
         <name>FirstWeb</name>
     </assembly>
     <members>
-        <member name="M:FirstWeb.Controllers.BooksController.CreateBook(FirstWeb.DTOS.CreateBookDTO)">
-            <summary>
-            You Can create a new book Model.
-            </summary>
-            <param name="bookModel"></param>
-            <remarks>
-            POST/TODO
-                  {
-                     "name": "Oq Kema",
-                     "price": 25.02,
-                     "authorName": "Cho'lpon",
-                     "writerId": 12,
-                     "genre": [0,1]
-                  }
-            </remarks>
-            <response code="200">Returns the newly created book</response>
-        </member>
         <member name="M:FirstWeb.Controllers.BooksController.GetBook(System.Int32)">
             <summary>
             Will return a book or not found result.
             </summary>
             <param name="id">This is book's id.</param>
+            <returns></returns>
+        </member>
+        <member name="M:FirstWeb.Controllers.WrtitersController.CreateWriter(FirstWeb.DTOS.CreateWriterDTO)">
+            <summary>
+            Siz yangi yozuvchi modelini yaratishiz mumkin!
+            </summary>
+            <param name="writerModel"></param>
+            <remarks>
+            POST/TODO
+                 {
+                     "fullName": "string",
+                     "birthDate": "2023-07-27T13:25:33.673Z",
+                     "books": [
+                       {
+                         "id": 0,
+                         "name": "string",
+                         "price": 0,
+                         "authorName": "string",
+                         "writerId": 0,
+                         "genres": [0]
+                       }
+                            ]
+                }       
+            </remarks>
+            <response code="200">Returns the newly created Writer</response>
+        </member>
+        <member name="M:FirstWeb.Controllers.WrtitersController.GetWriter(System.Int32)">
+            <summary>
+            Will return a writer or not found result.
+            </summary>
+            <param name="id">This is writer's id.</param>
             <returns></returns>
         </member>
     </members>
