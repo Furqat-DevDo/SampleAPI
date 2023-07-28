@@ -14,7 +14,7 @@ namespace FirstWeb.Controllers;
 public class updateModelsController : ControllerBase
 {
     // Connection string to the SQLite database file.
-    private const string connectionString = "Data Source= mydatabase.db;Version=3;";
+    private const string connectionString = "Data Source= mydatabase.db;";
     //Query which will create Table
     private readonly List<string> createTableQueries = new ()
     {
