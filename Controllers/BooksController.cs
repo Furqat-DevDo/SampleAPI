@@ -22,7 +22,7 @@ public class BooksController : ControllerBase
     {
         "CREATE TABLE IF NOT EXISTS Books (Id INTEGER PRIMARY KEY AUTOINCREMENT, Name TEXT, Price REAL, AuthorName TEXT, WriterId INTEGER)",
         "CREATE TABLE IF NOT EXISTS Genres(Id INTEGER PRIMARY KEY AUTOINCREMENT,Name NVARCHAR(100) NOT NULL);",
-        "CREATE TABLE IF NOT EXISTS BookGenres(BookId INTEGER NOT NULL,GenreId INTEGER NOT NULL,PRIMARY KEY (BookId, GenreId),FOREIGN KEY (BookId) " +
+        "CREATE TABLE IF NOT EXISTS BookGenres (BookId INTEGER NOT NULL,GenreId INTEGER NOT NULL,PRIMARY KEY (BookId, GenreId),FOREIGN KEY (BookId) " +
         "REFERENCES Books (Id),FOREIGN KEY (GenreId) REFERENCES Genres (Id));"
     };
     
@@ -55,7 +55,8 @@ public class BooksController : ControllerBase
         using SQLiteConnection conn = new SQLiteConnection(connectionString);
         conn.Open();
 
-        string insertBookQuery = "INSERT INTO Books (Name, Price, AuthorName, WriterId) VALUES (@name, @price, @author, @writerId)";
+        string insertBookQuery = "INSERT INTO Books (Name, Price, AuthorName, WriterId) " +
+                                 "VALUES (@name, @price, @author, @writerId)";
         using (SQLiteCommand bookCommand = new SQLiteCommand(insertBookQuery, conn))
         {
             bookCommand.Parameters.AddWithValue("@name", $"{bookModel.Name}");
@@ -128,25 +129,22 @@ public class BooksController : ControllerBase
     {
         var genres = new List<Genre>();
 
-        using (var command = new SQLiteCommand($"SELECT Genres.Id, Genres.Name AS GenreName " +
-            $"FROM Genres INNER JOIN BookGenres ON Genres.Id = BookGenres.GenreId " +
-            $"WHERE BookGenres.BookId = @bookId;", conn))
-        {
-            command.Parameters.AddWithValue("@bookId", bookId);
+        using var command = new SQLiteCommand($"SELECT Genres.Id, Genres.Name AS GenreName " +
+                                              $"FROM Genres INNER JOIN BookGenres ON Genres.Id = BookGenres.GenreId " +
+                                              $"WHERE BookGenres.BookId = @bookId;", conn);
+        command.Parameters.AddWithValue("@bookId", bookId);
 
-            using (var reader = command.ExecuteReader())
+        using var reader = command.ExecuteReader();
+
+        if (reader.HasRows)
+        {
+            while (reader.Read())
             {
-                if (reader.HasRows)
+                genres.Add(new Genre
                 {
-                    while (reader.Read())
-                    {
-                        genres.Add(new Genre
-                        {
-                            Id = Convert.ToInt64(reader["Id"]),
-                            Name = (string)reader["GenreName"],
-                        });
-                    }
-                }
+                    Id = Convert.ToInt64(reader["Id"]),
+                    Name = (string)reader["GenreName"],
+                });
             }
         }
 
@@ -233,19 +231,61 @@ public class BooksController : ControllerBase
                 }
                 else
                 {
-                    return NotFound();
+                    return NotFound(book);
                 }
               
             }
         }
     }
 
+    /// <summary>
+    /// Will Update Book with the GivenId
+    /// </summary>
+    /// <param name="id"></param>
+    /// <param name="updateModel"></param>
     [HttpPut("{id}")]
-    public IActionResult UpdateBook(long id,CreateBookDTO updateModel)
+    public IActionResult UpdateBook(long id, CreateBookDTO updateModel)
     {
         CreateTables();
-        
-        return Ok();
+
+        using SQLiteConnection connection = new SQLiteConnection(connectionString);
+        connection.Open();
+
+        string updateQuery = $"UPDATE Books SET Name = @name, Price = @price, AuthorName = @author WHERE Id = {id}";
+
+        using SQLiteCommand command = new SQLiteCommand(updateQuery, connection);
+        command.Parameters.AddWithValue("@name", updateModel.Name);
+        command.Parameters.AddWithValue("@price", updateModel.Price);
+        command.Parameters.AddWithValue("@author", updateModel.AuthorName);
+
+        int rowsAffected = command.ExecuteNonQuery();
+
+        if (rowsAffected > 0)
+        {
+            string selectQuery = $"SELECT * FROM Books WHERE Id = {id}";
+
+            using SQLiteCommand selectCommand = new SQLiteCommand(selectQuery, connection);
+            using SQLiteDataReader reader = selectCommand.ExecuteReader();
+
+            if (reader.Read())
+            {
+                Book updatedModel = new Book
+                {
+                    Id = Convert.ToInt32(reader["Id"]),
+                    Name = reader["Name"].ToString(),
+                    Price = Convert.ToSingle(reader["Price"]),
+                    AuthorName = reader["AuthorName"].ToString()
+                };
+
+                return Ok(updatedModel);
+            }
+        }
+        else
+        {
+            return NotFound();
+        }
+
+        return new StatusCodeResult(StatusCodes.Status500InternalServerError);
     }
 
     [HttpDelete("{id}")]

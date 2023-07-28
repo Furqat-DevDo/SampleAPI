@@ -4,11 +4,51 @@
         <name>FirstWeb</name>
     </assembly>
     <members>
+        <member name="F:FirstWeb.Controllers.BooksController.connectionString">
+            <summary>
+            Our Mock data source location.
+            </summary>
+        </member>
+        <member name="F:FirstWeb.Controllers.BooksController.createTableQueries">
+            <summary>
+            List of Queries for Create All Tables.
+            </summary>
+        </member>
+        <member name="M:FirstWeb.Controllers.BooksController.CreateTables">
+            <summary>
+            Will Ensure that tables are created.
+            </summary>
+        </member>
+        <member name="M:FirstWeb.Controllers.BooksController.CreateBook(FirstWeb.DTOS.CreateBookDTO)">
+            <summary>
+            Will Create a new book with it's genres.
+            </summary>
+            <param name="bookModel">Create book Model</param>
+        </member>
+        <member name="M:FirstWeb.Controllers.BooksController.GetGenres(System.Int64,System.Data.SQLite.SQLiteConnection)">
+            <summary>
+            Will Get Genres from BooksGenre Table.
+            </summary>
+            <param name="bookId">bookId</param>
+            <param name="conn">SQL Lite ConnectionString</param>
+        </member>
+        <member name="M:FirstWeb.Controllers.BooksController.GetBooks">
+            <summary>
+            Will Return All Books Or EmptyList.
+            </summary>
+        </member>
         <member name="M:FirstWeb.Controllers.BooksController.GetBook(System.Int64)">
             <summary>
             Will return a book or not found result.
             </summary>
             <param name="id">This is book's id.</param>
+        </member>
+        <member name="M:FirstWeb.Controllers.BooksController.UpdateBook(System.Int64,FirstWeb.DTOS.CreateBookDTO)">
+            <summary>
+            Will Update Book with the GivenId
+            </summary>
+            <param name="id"></param>
+            <param name="updateModel"></param>
         </member>
         <member name="M:FirstWeb.Controllers.WrtitersController.CreateWriter(FirstWeb.DTOS.CreateWriterDTO)">
             <summary>
