@@ -1,6 +1,6 @@
 ﻿namespace FirstWeb.DTOS
 {
-    public class CreateGenreDto
+    public class CreateGenreDTO
     {
         public string  Name { get; set; }
     }

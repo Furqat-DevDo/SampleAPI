@@ -45,7 +45,7 @@ namespace FirstWeb.Controllers
 
         
         [HttpPost]
-        public IActionResult Post([FromBody] CreateGenreDto dto)
+        public IActionResult Post([FromBody] CreateGenreDTO dto)
         {
             CreateTable();
 

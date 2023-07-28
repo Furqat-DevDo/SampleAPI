@@ -4,12 +4,11 @@
         <name>FirstWeb</name>
     </assembly>
     <members>
-        <member name="M:FirstWeb.Controllers.BooksController.GetBook(System.Int32)">
+        <member name="M:FirstWeb.Controllers.BooksController.GetBook(System.Int64)">
             <summary>
             Will return a book or not found result.
             </summary>
             <param name="id">This is book's id.</param>
-            <returns></returns>
         </member>
         <member name="M:FirstWeb.Controllers.WrtitersController.CreateWriter(FirstWeb.DTOS.CreateWriterDTO)">
             <summary>
