@@ -16,15 +16,15 @@ namespace FirstWeb.Controllers
         {
             _logger= logger;
         }
-        private const string connectionString = "Data Source=myServerAddress,1433;Initial Catalog=myDataBase;User Id=myUsername;Password=myPassword;Integrated Security=False;MultipleActiveResultSets=true;";
+        private const string connectionString = "Data Source=mydata.db; Version=3;";
         
 
         private void CreateTable()
         {
-            var query = "CREATE TABLE IF NOT EXISTS Genres(Id INT PRIMARY KEY,Name NVARCHAR(100) NOT NULL);";
-            var connection = new SqlConnection(connectionString);
+            var query = "CREATE TABLE IF NOT EXISTS Genres(Id INTEGER PRIMARY KEY AUTOINCREMENT, Name NVARCHAR(100) NOT NULL);";
+            var connection = new SQLiteConnection(connectionString);
             connection.Open();
-            var command = new SqlCommand(query, connection);
+            var command = new SQLiteCommand(query, connection);
             command.ExecuteNonQuery();
         }
 
@@ -51,12 +51,12 @@ namespace FirstWeb.Controllers
 
             try
             {
-                using var connection = new SqlConnection(connectionString);
+                using var connection = new SQLiteConnection(connectionString);
                 connection.Open();
 
                 var query = "INSERT INTO Genres (Name) VALUES (@name)";
 
-                using var command = new SqlCommand(query, connection);
+                using var command = new SQLiteCommand(query, connection);
                 command.Parameters.AddWithValue("@name", $"{dto.Name}");
 
                 command.ExecuteNonQuery();
@@ -70,6 +70,7 @@ namespace FirstWeb.Controllers
             try
             {
                 using var connection2 = new SQLiteConnection(connectionString);
+                connection2.Open();
                 string selectQuery = "SELECT * FROM Genres WHERE Name = @name";
                 using SQLiteCommand command = new SQLiteCommand(selectQuery, connection2);
                 command.Parameters.AddWithValue("@name", dto.Name);
@@ -79,7 +80,7 @@ namespace FirstWeb.Controllers
                 {
                     var genre = new Genre
                     {
-                        Id = (int)reader["Id"],
+                        Id = (long)reader["Id"],
                         Name = (string)reader["Name"],
                     };
 

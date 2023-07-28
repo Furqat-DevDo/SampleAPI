@@ -14,8 +14,8 @@ public class BooksController : ControllerBase
 
     private readonly List<string> createTableQueries = new ()
     {
-        "CREATE TABLE IF NOT EXISTS Books (Id INTEGER PRIMARY KEY, Name TEXT, Price REAL, AuthorName TEXT, WriterId INTEGER)",
-        "CREATE TABLE IF NOT EXISTS Genres(Id INT PRIMARY KEY,Name NVARCHAR(100) NOT NULL);",
+        "CREATE TABLE IF NOT EXISTS Books (Id INTEGER PRIMARY KEY AUTOINCREMENT, Name TEXT, Price REAL, AuthorName TEXT, WriterId INTEGER)",
+        "CREATE TABLE IF NOT EXISTS Genres(Id INT PRIMARY KEY AUTOINCREMENT,Name NVARCHAR(100) NOT NULL);",
         "CREATE TABLE IF NOT EXISTS BookGenres(BookId INT NOT NULL,GenreId INT NOT NULL,PRIMARY KEY (BookId, GenreId),FOREIGN KEY (BookId) " +
         "REFERENCES Books (Id),FOREIGN KEY (GenreId) REFERENCES Genres (Id));"
     };
