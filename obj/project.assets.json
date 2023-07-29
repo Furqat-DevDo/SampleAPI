@@ -1647,11 +1647,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\furqa\\FirstWeb\\FirstWeb.csproj",
+      "projectUniqueName": "C:\\Users\\furqa\\SampleAPI\\FirstWeb.csproj",
       "projectName": "FirstWeb",
-      "projectPath": "C:\\Users\\furqa\\FirstWeb\\FirstWeb.csproj",
+      "projectPath": "C:\\Users\\furqa\\SampleAPI\\FirstWeb.csproj",
       "packagesPath": "C:\\Users\\furqa\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\furqa\\FirstWeb\\obj\\",
+      "outputPath": "C:\\Users\\furqa\\SampleAPI\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

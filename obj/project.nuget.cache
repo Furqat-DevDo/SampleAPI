@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "cMMm5WeOdbNio8wJUOOhx0n6GZMdDmuhvcaiyGhuqUWE5qHXxiiBrP66uIcii3lq7qKlFuPHtpUjXFFyURbDFw==",
+  "dgSpecHash": "4p4N3x39e/m86lqiE4mwJVpFqXoC7zMPA25NbaURzyCp4RONwXuKTKmJ4RolYI4W7qPZuEOPEjW+NpUhZ6If8Q==",
   "success": true,
-  "projectFilePath": "C:\\Users\\furqa\\FirstWeb\\FirstWeb.csproj",
+  "projectFilePath": "C:\\Users\\furqa\\SampleAPI\\FirstWeb.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\furqa\\.nuget\\packages\\entityframework\\6.4.4\\entityframework.6.4.4.nupkg.sha512",
     "C:\\Users\\furqa\\.nuget\\packages\\microsoft.csharp\\4.7.0\\microsoft.csharp.4.7.0.nupkg.sha512",
