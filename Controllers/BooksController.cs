@@ -2,7 +2,6 @@
 using FirstWeb.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Data.SQLite;
-using System.Net;
 
 namespace FirstWeb.Controllers;
 
@@ -11,14 +10,10 @@ namespace FirstWeb.Controllers;
 [Produces("application/json")]
 public class BooksController : ControllerBase
 {
-    /// <summary>
-    /// Our Mock data source location.
-    /// </summary>
+    
     private const string connectionString = "Data source = mydata.db; Version =3";
 
-    /// <summary>
-    /// List of Queries for Create All Tables.
-    /// </summary>
+    
     private readonly List<string> createTableQueries = new ()
     {
         "CREATE TABLE IF NOT EXISTS Books (Id INTEGER PRIMARY KEY AUTOINCREMENT, Name TEXT, Price REAL, AuthorName TEXT, WriterId INTEGER)",
@@ -27,9 +22,7 @@ public class BooksController : ControllerBase
         "REFERENCES Books (Id),FOREIGN KEY (GenreId) REFERENCES Genres (Id));"
     };
     
-    /// <summary>
-    /// Will Ensure that tables are created.
-    /// </summary>
+   
     private void CreateTables()
     {
         using SQLiteConnection conn = new SQLiteConnection(connectionString);
@@ -44,9 +37,9 @@ public class BooksController : ControllerBase
     }
 
     /// <summary>
-    /// Will Create a new book with it's genres.
+    /// Will Create new book with new genre.
     /// </summary>
-    /// <param name="bookModel">Create book Model</param>
+    /// <param name="bookModel">new Book model. </param>
     [HttpPost]
     [ProducesResponseType(typeof(Book),200)]
     public IActionResult CreateBook(CreateBookDTO bookModel)
@@ -85,11 +78,7 @@ public class BooksController : ControllerBase
         return CreatedAtAction(nameof(CreateBook), createdBook);
     }
 
-    /// <summary>
-    /// Will Get Genres from BooksGenre Table.
-    /// </summary>
-    /// <param name="bookId">bookId</param>
-    /// <param name="conn">SQL Lite ConnectionString</param>
+   
     private List<Genre> GetGenres(long bookId, SQLiteConnection conn)
     {
         var genres = new List<Genre>();
@@ -116,12 +105,7 @@ public class BooksController : ControllerBase
         return genres;
     }
 
-    /// <summary>
-    /// Will get genre if not found will create new one ,
-    /// than will return it's Id.
-    /// </summary>
-    /// <param name="genre">Genre of book</param>
-    /// <param name="conn">SQLiteConnection</param>
+   
     private long GetOrCreateGenre(CreateGenreDTO genre,SQLiteConnection conn)
     {
         string selectGenreQuery = "SELECT Id FROM Genres WHERE Name = @name";
@@ -158,12 +142,7 @@ public class BooksController : ControllerBase
 
     }
 
-    /// <summary>
-    /// Will Create BookGenre relationship table object. 
-    /// </summary>
-    /// <param name="bookId">Book's Id</param>
-    /// <param name="genreId">Genre's Id</param>
-    /// <param name="connection">SQLiteConnection</param>
+   
     private void CreateBookGenre(long bookId,long genreId,SQLiteConnection connection)
     {
         string insertBookGenreQuery = "INSERT INTO BookGenres (BookId, GenreId) VALUES (@bookId, @genreId)";
@@ -175,9 +154,9 @@ public class BooksController : ControllerBase
         }
     }
 
-    /// <summary>
-    /// Will Return All Books Or EmptyList.
-    /// </summary>
+   /// <summary>
+   /// Wiil return all books or empty list.
+   /// </summary>
     [HttpGet]
     public IActionResult GetBooks()
     {
@@ -217,9 +196,9 @@ public class BooksController : ControllerBase
     }
     
     /// <summary>
-    /// Will return a book or not found result.
+    /// Will return a book with the given Id.
     /// </summary>
-    /// <param name="id">This is book's id.</param>
+    /// <param name="id">book's id</param>
     [HttpGet("{id}")]
     [ProducesResponseType(typeof(Book),200)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -263,10 +242,11 @@ public class BooksController : ControllerBase
     }
 
     /// <summary>
-    /// Will Update Book with the GivenId
+    /// Will update the book with the given Id.
     /// </summary>
-    /// <param name="id"></param>
-    /// <param name="updateModel"></param>
+    /// <param name="id">Book id</param>
+    /// <param name="updateModel">Book Model</param>
+    /// <returns></returns>
     [HttpPut("{id}")]
     public IActionResult UpdateBook(long id, CreateBookDTO updateModel)
     {
@@ -312,13 +292,10 @@ public class BooksController : ControllerBase
         return new StatusCodeResult(StatusCodes.Status500InternalServerError);
     }
 
-    /// <summary>
-    /// Will Delete the book with the given Id.
-    /// </summary>
-    /// <param name="id">Book's Id</param>
-    /// <response>
-    /// If book was found it will be deleted and response will be true.
-    /// </response>
+   /// <summary>
+   /// Will delete the book with the given Id.
+   /// </summary>
+   /// <param name="id">Book id</param>
     [HttpDelete("{id}")]
     [ProducesResponseType(typeof(bool),200)]
     [ProducesResponseType(typeof(bool),400)]

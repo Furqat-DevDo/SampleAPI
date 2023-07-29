@@ -38,20 +38,15 @@ var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger(options =>
-    {
-        options.SerializeAsV2 = true;
-    });
+    app.UseSwagger();
     
     app.UseSwaggerUI(options =>
     {
         options.SwaggerEndpoint("/swagger/v1/swagger.json", "v1");
-        options.RoutePrefix = string.Empty;
-        options.InjectStylesheet("/swagger-ui/custom.css");
+        options.RoutePrefix = string.Empty;       
     });
 }
 
-app.UseStaticFiles();
 app.MapControllers();
 
 app.Run();
