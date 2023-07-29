@@ -2,6 +2,7 @@
 using FirstWeb.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Data.SQLite;
+using System.Net;
 
 namespace FirstWeb.Controllers;
 
@@ -75,44 +76,8 @@ public class BooksController : ControllerBase
         
         foreach (var genre in bookModel.Genres)
         {
-
-            string selectGenreQuery = "SELECT Id FROM Genres WHERE Name = @name";
-            long genreId;
-            using (SQLiteCommand selectGenreCommand = new SQLiteCommand(selectGenreQuery, conn))
-            {
-                selectGenreCommand.Parameters.AddWithValue("@name", genre.Name);
-                var result = selectGenreCommand.ExecuteScalar();
-
-                if (result != null)
-                {
-                    
-                    genreId = (long)(result);
-                }
-                else
-                {
-                    
-                    string insertGenreQuery = "INSERT INTO Genres (Name) VALUES (@name)";
-                    using (SQLiteCommand genreCommand = new SQLiteCommand(insertGenreQuery, conn))
-                    {
-                        genreCommand.Parameters.AddWithValue("@name", genre.Name);
-                        genreCommand.ExecuteNonQuery();
-                    }
-
-                    
-                    using (SQLiteCommand getLastInsertRowIdCommand = new SQLiteCommand("SELECT last_insert_rowid();", conn))
-                    {
-                        genreId = (long)(getLastInsertRowIdCommand.ExecuteScalar());
-                    }
-                }
-            }
-
-            string insertBookGenreQuery = "INSERT INTO BookGenres (BookId, GenreId) VALUES (@bookId, @genreId)";
-            using (SQLiteCommand bookGenreCommand = new SQLiteCommand(insertBookGenreQuery, conn))
-            {
-                bookGenreCommand.Parameters.AddWithValue("@bookId", bookId);
-                bookGenreCommand.Parameters.AddWithValue("@genreId", genreId);
-                bookGenreCommand.ExecuteNonQuery();
-            }
+            var genreId = GetOrCreateGenre(genre,conn);
+            CreateBookGenre(bookId,genreId,conn);     
         }
 
         var createdBook = GetBook(bookId);
@@ -149,6 +114,65 @@ public class BooksController : ControllerBase
         }
 
         return genres;
+    }
+
+    /// <summary>
+    /// Will get genre if not found will create new one ,
+    /// than will return it's Id.
+    /// </summary>
+    /// <param name="genre">Genre of book</param>
+    /// <param name="conn">SQLiteConnection</param>
+    private long GetOrCreateGenre(CreateGenreDTO genre,SQLiteConnection conn)
+    {
+        string selectGenreQuery = "SELECT Id FROM Genres WHERE Name = @name";
+        long genreId;
+        using (SQLiteCommand selectGenreCommand = new SQLiteCommand(selectGenreQuery, conn))
+        {
+            selectGenreCommand.Parameters.AddWithValue("@name", genre.Name);
+            var result = selectGenreCommand.ExecuteScalar();
+
+            if (result != null)
+            {
+                    
+                genreId = (long)(result);
+            }
+            else
+            {
+                    
+                string insertGenreQuery = "INSERT INTO Genres (Name) VALUES (@name)";
+                using (SQLiteCommand genreCommand = new SQLiteCommand(insertGenreQuery, conn))
+                {
+                    genreCommand.Parameters.AddWithValue("@name", genre.Name);
+                    genreCommand.ExecuteNonQuery();
+                }
+
+                    
+                using (SQLiteCommand getLastInsertRowIdCommand = new SQLiteCommand("SELECT last_insert_rowid();", conn))
+                {
+                    genreId = (long)(getLastInsertRowIdCommand.ExecuteScalar());
+                }
+            }
+        }
+
+        return genreId;
+
+    }
+
+    /// <summary>
+    /// Will Create BookGenre relationship table object. 
+    /// </summary>
+    /// <param name="bookId">Book's Id</param>
+    /// <param name="genreId">Genre's Id</param>
+    /// <param name="connection">SQLiteConnection</param>
+    private void CreateBookGenre(long bookId,long genreId,SQLiteConnection connection)
+    {
+        string insertBookGenreQuery = "INSERT INTO BookGenres (BookId, GenreId) VALUES (@bookId, @genreId)";
+        using (SQLiteCommand bookGenreCommand = new SQLiteCommand(insertBookGenreQuery, connection))
+        {
+            bookGenreCommand.Parameters.AddWithValue("@bookId", bookId);
+            bookGenreCommand.Parameters.AddWithValue("@genreId", genreId);
+            bookGenreCommand.ExecuteNonQuery();
+        }
     }
 
     /// <summary>
@@ -206,7 +230,7 @@ public class BooksController : ControllerBase
         using SQLiteConnection conn = new SQLiteConnection(connectionString);
         conn.Open();
 
-        Book book = null;
+        Book book = new();
         string selectBookQuery = "SELECT * FROM Books WHERE Id = @bookId";
         using (SQLiteCommand selectBookCommand = new SQLiteCommand(selectBookQuery, conn))
         {
@@ -231,7 +255,7 @@ public class BooksController : ControllerBase
                 }
                 else
                 {
-                    return NotFound(book);
+                    return NotFound(null);
                 }
               
             }
@@ -271,10 +295,10 @@ public class BooksController : ControllerBase
             {
                 Book updatedModel = new Book
                 {
-                    Id = Convert.ToInt32(reader["Id"]),
-                    Name = reader["Name"].ToString(),
-                    Price = Convert.ToSingle(reader["Price"]),
-                    AuthorName = reader["AuthorName"].ToString()
+                    Id = (long)reader["Id"],
+                    Name =(string)reader["Name"],
+                    Price = (float)reader["Price"],
+                    AuthorName =(string)reader["AuthorName"]
                 };
 
                 return Ok(updatedModel);
@@ -288,7 +312,16 @@ public class BooksController : ControllerBase
         return new StatusCodeResult(StatusCodes.Status500InternalServerError);
     }
 
+    /// <summary>
+    /// Will Delete the book with the given Id.
+    /// </summary>
+    /// <param name="id">Book's Id</param>
+    /// <response>
+    /// If book was found it will be deleted and response will be true.
+    /// </response>
     [HttpDelete("{id}")]
+    [ProducesResponseType(typeof(bool),200)]
+    [ProducesResponseType(typeof(bool),400)]
     public IActionResult DeleteBook(long id)
     {
         CreateTables();

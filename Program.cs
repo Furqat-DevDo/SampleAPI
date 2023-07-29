@@ -28,7 +28,7 @@ builder.Services.AddSwaggerGen(
                 Url = new Uri("https://ilmhub.uz/")
             }
         });
-        
+
         var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
         options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
     }

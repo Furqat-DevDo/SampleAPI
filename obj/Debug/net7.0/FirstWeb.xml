@@ -32,6 +32,22 @@
             <param name="bookId">bookId</param>
             <param name="conn">SQL Lite ConnectionString</param>
         </member>
+        <member name="M:FirstWeb.Controllers.BooksController.GetOrCreateGenre(FirstWeb.DTOS.CreateGenreDTO,System.Data.SQLite.SQLiteConnection)">
+            <summary>
+            Will get genre if not found will create new one ,
+            than will return it's Id.
+            </summary>
+            <param name="genre">Genre of book</param>
+            <param name="conn">SQLiteConnection</param>
+        </member>
+        <member name="M:FirstWeb.Controllers.BooksController.CreateBookGenre(System.Int64,System.Int64,System.Data.SQLite.SQLiteConnection)">
+            <summary>
+            Will Create BookGenre relationship table object. 
+            </summary>
+            <param name="bookId">Book's Id</param>
+            <param name="genreId">Genre's Id</param>
+            <param name="connection">SQLiteConnection</param>
+        </member>
         <member name="M:FirstWeb.Controllers.BooksController.GetBooks">
             <summary>
             Will Return All Books Or EmptyList.
@@ -49,6 +65,15 @@
             </summary>
             <param name="id"></param>
             <param name="updateModel"></param>
+        </member>
+        <member name="M:FirstWeb.Controllers.BooksController.DeleteBook(System.Int64)">
+            <summary>
+            Will Delete the book with the given Id.
+            </summary>
+            <param name="id">Book's Id</param>
+            <response>
+            If book was found it will be deleted and response will be true.
+            </response>
         </member>
         <member name="M:FirstWeb.Controllers.WrtitersController.CreateWriter(FirstWeb.DTOS.CreateWriterDTO)">
             <summary>
