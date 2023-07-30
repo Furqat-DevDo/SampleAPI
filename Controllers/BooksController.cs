@@ -25,13 +25,13 @@ public class BooksController : ControllerBase
    
     private void CreateTables()
     {
-        using SQLiteConnection conn = new SQLiteConnection(connectionString);
+        using SQLiteConnection conn = new(connectionString);
 
         conn.Open();
 
         foreach (var query in createTableQueries)
         {
-            using SQLiteCommand command = new SQLiteCommand(query, conn);
+            using SQLiteCommand command = new(query, conn);
             command.ExecuteNonQuery();
         }
     }
@@ -46,12 +46,12 @@ public class BooksController : ControllerBase
     {
         CreateTables();
 
-        using SQLiteConnection conn = new SQLiteConnection(connectionString);
+        using SQLiteConnection conn = new(connectionString);
         conn.Open();
 
         string insertBookQuery = "INSERT INTO Books (Name, Price, AuthorName, WriterId) " +
                                  "VALUES (@name, @price, @author, @writerId)";
-        using (SQLiteCommand bookCommand = new SQLiteCommand(insertBookQuery, conn))
+        using (SQLiteCommand bookCommand = new(insertBookQuery, conn))
         {
             bookCommand.Parameters.AddWithValue("@name", $"{bookModel.Name}");
             bookCommand.Parameters.AddWithValue("@price", bookModel.Price);
@@ -61,7 +61,7 @@ public class BooksController : ControllerBase
         }
 
         long bookId;
-        using (SQLiteCommand getLastInsertRowIdCommand = new SQLiteCommand("SELECT last_insert_rowid();", conn))
+        using (SQLiteCommand getLastInsertRowIdCommand = new("SELECT last_insert_rowid();", conn))
         {
             bookId = Convert.ToInt64(getLastInsertRowIdCommand.ExecuteScalar());
         }
@@ -79,7 +79,7 @@ public class BooksController : ControllerBase
     }
 
    
-    private List<Genre> GetGenres(long bookId, SQLiteConnection conn)
+    private static List<Genre> GetGenres(long bookId, SQLiteConnection conn)
     {
         var genres = new List<Genre>();
 
@@ -106,11 +106,11 @@ public class BooksController : ControllerBase
     }
 
    
-    private long GetOrCreateGenre(CreateGenreDTO genre,SQLiteConnection conn)
+    private static long GetOrCreateGenre(CreateGenreDTO genre,SQLiteConnection conn)
     {
         string selectGenreQuery = "SELECT Id FROM Genres WHERE Name = @name";
         long genreId;
-        using (SQLiteCommand selectGenreCommand = new SQLiteCommand(selectGenreQuery, conn))
+        using (SQLiteCommand selectGenreCommand = new(selectGenreQuery, conn))
         {
             selectGenreCommand.Parameters.AddWithValue("@name", genre.Name);
             var result = selectGenreCommand.ExecuteScalar();
@@ -124,17 +124,15 @@ public class BooksController : ControllerBase
             {
                     
                 string insertGenreQuery = "INSERT INTO Genres (Name) VALUES (@name)";
-                using (SQLiteCommand genreCommand = new SQLiteCommand(insertGenreQuery, conn))
+                using (SQLiteCommand genreCommand = new(insertGenreQuery, conn))
                 {
                     genreCommand.Parameters.AddWithValue("@name", genre.Name);
                     genreCommand.ExecuteNonQuery();
                 }
 
-                    
-                using (SQLiteCommand getLastInsertRowIdCommand = new SQLiteCommand("SELECT last_insert_rowid();", conn))
-                {
-                    genreId = (long)(getLastInsertRowIdCommand.ExecuteScalar());
-                }
+
+                using SQLiteCommand getLastInsertRowIdCommand = new("SELECT last_insert_rowid();", conn);
+                genreId = (long)getLastInsertRowIdCommand.ExecuteScalar();
             }
         }
 
@@ -143,15 +141,13 @@ public class BooksController : ControllerBase
     }
 
    
-    private void CreateBookGenre(long bookId,long genreId,SQLiteConnection connection)
+    private static void CreateBookGenre(long bookId,long genreId,SQLiteConnection connection)
     {
         string insertBookGenreQuery = "INSERT INTO BookGenres (BookId, GenreId) VALUES (@bookId, @genreId)";
-        using (SQLiteCommand bookGenreCommand = new SQLiteCommand(insertBookGenreQuery, connection))
-        {
-            bookGenreCommand.Parameters.AddWithValue("@bookId", bookId);
-            bookGenreCommand.Parameters.AddWithValue("@genreId", genreId);
-            bookGenreCommand.ExecuteNonQuery();
-        }
+        using SQLiteCommand bookGenreCommand = new(insertBookGenreQuery, connection);
+        bookGenreCommand.Parameters.AddWithValue("@bookId", bookId);
+        bookGenreCommand.Parameters.AddWithValue("@genreId", genreId);
+        bookGenreCommand.ExecuteNonQuery();
     }
 
    /// <summary>
@@ -162,7 +158,7 @@ public class BooksController : ControllerBase
     {
         CreateTables();
 
-        using SQLiteConnection conn = new SQLiteConnection(connectionString);
+        using SQLiteConnection conn = new(connectionString);
         conn.Open();
 
         var books = new List<Book>();
@@ -206,38 +202,33 @@ public class BooksController : ControllerBase
     {
         CreateTables();
 
-        using SQLiteConnection conn = new SQLiteConnection(connectionString);
+        using SQLiteConnection conn = new(connectionString);
         conn.Open();
 
         Book book = new();
         string selectBookQuery = "SELECT * FROM Books WHERE Id = @bookId";
-        using (SQLiteCommand selectBookCommand = new SQLiteCommand(selectBookQuery, conn))
+        using SQLiteCommand selectBookCommand = new(selectBookQuery, conn);
+        selectBookCommand.Parameters.AddWithValue("@bookId", id);
+
+        using SQLiteDataReader reader = selectBookCommand.ExecuteReader();
+        if (reader.HasRows)
         {
-            selectBookCommand.Parameters.AddWithValue("@bookId", id);
-
-            using (SQLiteDataReader reader = selectBookCommand.ExecuteReader())
+            reader.Read();
+            book = new Book
             {
-                if (reader.HasRows)
-                {
-                    reader.Read();
-                    book = new Book
-                    {
-                        Id = Convert.ToInt64(reader["Id"]),
-                        Name = (string)reader["Name"],
-                        AuthorName = (string)reader["AuthorName"],
-                        WriterId = (long)reader["WriterId"],
-                        Price = Convert.ToSingle(reader["Price"]),
-                        Genres = GetGenres(id, conn)
-                    };
+                Id = Convert.ToInt64(reader["Id"]),
+                Name = (string)reader["Name"],
+                AuthorName = (string)reader["AuthorName"],
+                WriterId = (long)reader["WriterId"],
+                Price = Convert.ToSingle(reader["Price"]),
+                Genres = GetGenres(id, conn)
+            };
 
-                    return Ok(book);
-                }
-                else
-                {
-                    return NotFound(null);
-                }
-              
-            }
+            return Ok(book);
+        }
+        else
+        {
+            return NotFound(null);
         }
     }
 
@@ -252,12 +243,12 @@ public class BooksController : ControllerBase
     {
         CreateTables();
 
-        using SQLiteConnection connection = new SQLiteConnection(connectionString);
+        using SQLiteConnection connection = new(connectionString);
         connection.Open();
 
         string updateQuery = $"UPDATE Books SET Name = @name, Price = @price, AuthorName = @author WHERE Id = {id}";
 
-        using SQLiteCommand command = new SQLiteCommand(updateQuery, connection);
+        using SQLiteCommand command = new(updateQuery, connection);
         command.Parameters.AddWithValue("@name", updateModel.Name);
         command.Parameters.AddWithValue("@price", updateModel.Price);
         command.Parameters.AddWithValue("@author", updateModel.AuthorName);
@@ -268,12 +259,12 @@ public class BooksController : ControllerBase
         {
             string selectQuery = $"SELECT * FROM Books WHERE Id = {id}";
 
-            using SQLiteCommand selectCommand = new SQLiteCommand(selectQuery, connection);
+            using SQLiteCommand selectCommand = new(selectQuery, connection);
             using SQLiteDataReader reader = selectCommand.ExecuteReader();
 
             if (reader.Read())
             {
-                Book updatedModel = new Book
+                Book updatedModel = new()
                 {
                     Id = (long)reader["Id"],
                     Name =(string)reader["Name"],
@@ -308,16 +299,14 @@ public class BooksController : ControllerBase
             connection.Open();
 
             string deleteQuery = "DELETE FROM Books WHERE Id = @id";
-            using (var command = new SQLiteCommand(deleteQuery, connection))
+            using var command = new SQLiteCommand(deleteQuery, connection);
+            command.Parameters.AddWithValue("@id", id);
+
+            int rowsAffected = command.ExecuteNonQuery();
+
+            if (rowsAffected > 0)
             {
-                command.Parameters.AddWithValue("@id", id);
-
-                int rowsAffected = command.ExecuteNonQuery();
-
-                if (rowsAffected > 0)
-                {
-                    return Ok(true);
-                }
+                return Ok(true);
             }
         }
 
