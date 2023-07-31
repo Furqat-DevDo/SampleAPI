@@ -2,6 +2,10 @@
 using FirstWeb.Models;
 using FirstWeb.Services.Interfaces;
 using System.Data.SQLite;
+using static System.Reflection.Metadata.BlobBuilder;
+using System.Reflection.PortableExecutable;
+using System.Xml.Linq;
+using System.Net;
 
 namespace FirstWeb.Services;
 
@@ -37,7 +41,7 @@ public class BookService : IBookService
         foreach (var genre in createBookModel.Genres)
         {
             var genreId = GetOrCreateGenre(genre, conn);
-            CreateBookGenre(bookId, genreId, conn);
+            GetOrCreateBookGenre(bookId, genreId, conn);
         }
 
         return GetById(bookId);
@@ -46,22 +50,182 @@ public class BookService : IBookService
 
     public bool Delete(long id)
     {
-        throw new NotImplementedException();
+        CreateTables();
+
+        using (var connection = new SQLiteConnection(connectionString))
+        {
+            connection.Open();
+
+            string deleteQuery = "DELETE FROM Books WHERE Id = @id";
+            using var command = new SQLiteCommand(deleteQuery, connection);
+            command.Parameters.AddWithValue("@id", id);
+
+            int rowsAffected = command.ExecuteNonQuery();
+
+            if (rowsAffected > 0)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public List<BookModel> GetAll()
     {
-        throw new NotImplementedException();
+        CreateTables();
+
+        using SQLiteConnection conn = new(connectionString);
+        conn.Open();
+
+        var books = new List<Book>();
+        using (var command = new SQLiteCommand("SELECT * FROM Books", conn))
+
+        using (SQLiteDataReader reader = command.ExecuteReader())
+        {
+            if (reader.HasRows)
+            {
+                while (reader.Read())
+                {
+
+                    var book = new Book
+                    {
+                        Id = Convert.ToInt64(reader["Id"]),
+                        Name = (string)reader["Name"],
+                        AuthorName = (string)reader["AuthorName"],
+                        WriterId = (long)reader["WriterId"],
+                        Price = Convert.ToSingle(reader["Price"]),
+                    };
+
+                    book.Genres = GetGenres(book.Id, conn);
+
+                    books.Add(book);
+                }
+            }
+
+        }
+
+        return books.Select(b => new BookModel
+        {
+            AuthorName = b.AuthorName,
+            WriterId = b.WriterId,
+            Price = b.Price,
+            Genres = b.Genres.Select(g => new GenreModel
+            {
+                Id = g.Id,
+                Name = g.Name,
+            }).ToList(),
+            Id = b.Id,
+            Name = b.Name
+        }).ToList();
+
     }
 
     public BookModel GetById(long id)
     {
-        throw new NotImplementedException();
+        CreateTables();
+
+        using SQLiteConnection conn = new(connectionString);
+        conn.Open();
+
+        Book book = new();
+        string selectBookQuery = "SELECT * FROM Books WHERE Id = @bookId";
+        using SQLiteCommand selectBookCommand = new(selectBookQuery, conn);
+        selectBookCommand.Parameters.AddWithValue("@bookId", id);
+
+        using SQLiteDataReader reader = selectBookCommand.ExecuteReader();
+        if (reader.HasRows)
+        {
+            reader.Read();
+            book = new Book
+            {
+                Id = Convert.ToInt64(reader["Id"]),
+                Name = (string)reader["Name"],
+                AuthorName = (string)reader["AuthorName"],
+                WriterId = (long)reader["WriterId"],
+                Price = Convert.ToSingle(reader["Price"]),
+                Genres = GetGenres(id, conn)
+            };
+
+            return new BookModel
+            {
+                AuthorName = book.AuthorName,
+                WriterId = book.WriterId,
+                Price = book.Price,
+                Genres = book.Genres.Select(g=>new GenreModel 
+                { 
+                    Id=g.Id,
+                    Name=g.Name,
+                }).ToList(),
+                Id = book.Id,
+                Name = book.Name
+            };
+        }
+
+        return null;
+
     }
 
-    public BookModel Update(CreateBookModel updateBookModel)
+    public BookModel Update(long id, CreateBookModel updateBookModel)
     {
-        throw new NotImplementedException();
+        CreateTables();
+
+        using SQLiteConnection connection = new(connectionString);
+        connection.Open();
+
+        string updateQuery = $"UPDATE Books SET Name = @name, Price = @price, AuthorName = @author, WriterId = @writerId WHERE Id = {id}";
+
+        using SQLiteCommand command = new(updateQuery, connection);
+        command.Parameters.AddWithValue("@name", updateBookModel.Name);
+        command.Parameters.AddWithValue("@price", updateBookModel.Price);
+        command.Parameters.AddWithValue("@author", updateBookModel.AuthorName);
+        command.Parameters.AddWithValue("@writerId", updateBookModel.WriterId);
+
+        int rowsAffected = command.ExecuteNonQuery();
+
+        if (rowsAffected > 0)
+        {
+            string selectQuery = $"SELECT * FROM Books WHERE Id = {id}";
+
+            using SQLiteCommand selectCommand = new(selectQuery, connection);
+            using SQLiteDataReader reader = selectCommand.ExecuteReader();
+
+            foreach (var genre in updateBookModel.Genres)
+            {
+                var genreId = GetOrCreateGenre(genre, connection);
+                GetOrCreateBookGenre(id, genreId, connection);
+            }
+
+            if (reader.Read())
+            {
+                Book updatedModel = new()
+                {
+                    Id = (long)reader["Id"],
+                    Name = (string)reader["Name"],
+                    Price = (double)reader["Price"],
+                    AuthorName = (string)reader["AuthorName"]
+                };
+
+                var genres = GetGenres(id, connection);
+
+                return new BookModel
+                {
+                    AuthorName = updatedModel.AuthorName,
+                    WriterId = updatedModel.WriterId,
+                    Price = updatedModel.Price,
+                    Genres = genres.Select(g => new GenreModel
+                    {
+                        Id = g.Id,
+                        Name = g.Name,
+                    }).ToList(),
+
+                    Id = updatedModel.Id,
+                    Name = updatedModel.Name
+                };
+            }
+        }
+
+        return null;
     }
 
 
@@ -146,12 +310,25 @@ public class BookService : IBookService
 
     }
 
-    private static void CreateBookGenre(long bookId, long genreId, SQLiteConnection connection)
+    private static void GetOrCreateBookGenre(long bookId, long genreId, SQLiteConnection connection)
     {
+        string selectBookGenresQuery = "SELECT BookId, GenreId FROM BookGenres WHERE BookId = @bookId and GenreId = genreId";
+        using SQLiteCommand selectGenreCommand = new(selectBookGenresQuery, connection);
+        selectGenreCommand.Parameters.AddWithValue("@bookId", bookId);
+        selectGenreCommand.Parameters.AddWithValue("@genreId", genreId);
+
+        var result = selectGenreCommand.ExecuteScalar();
+
+        if (result is not null)
+        {
+            return;
+        }
+        
         string insertBookGenreQuery = "INSERT INTO BookGenres (BookId, GenreId) VALUES (@bookId, @genreId)";
         using SQLiteCommand bookGenreCommand = new(insertBookGenreQuery, connection);
         bookGenreCommand.Parameters.AddWithValue("@bookId", bookId);
         bookGenreCommand.Parameters.AddWithValue("@genreId", genreId);
         bookGenreCommand.ExecuteNonQuery();
     }
+
 }
