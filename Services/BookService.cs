@@ -312,7 +312,7 @@ public class BookService : IBookService
 
     private static void GetOrCreateBookGenre(long bookId, long genreId, SQLiteConnection connection)
     {
-        string selectBookGenresQuery = "SELECT BookId, GenreId FROM BookGenres WHERE BookId = @bookId and GenreId = genreId";
+        string selectBookGenresQuery = "SELECT BookId, GenreId FROM BookGenres WHERE BookId = @bookId and GenreId = @genreId";
         using SQLiteCommand selectGenreCommand = new(selectBookGenresQuery, connection);
         selectGenreCommand.Parameters.AddWithValue("@bookId", bookId);
         selectGenreCommand.Parameters.AddWithValue("@genreId", genreId);
