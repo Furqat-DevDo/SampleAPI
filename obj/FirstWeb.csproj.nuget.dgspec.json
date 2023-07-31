@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\furqa\\SampleAPI\\FirstWeb.csproj": {}
+    "c:\\Users\\furqa\\SampleAPI\\FirstWeb.csproj": {}
   },
   "projects": {
-    "C:\\Users\\furqa\\SampleAPI\\FirstWeb.csproj": {
+    "c:\\Users\\furqa\\SampleAPI\\FirstWeb.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\furqa\\SampleAPI\\FirstWeb.csproj",
+        "projectUniqueName": "c:\\Users\\furqa\\SampleAPI\\FirstWeb.csproj",
         "projectName": "FirstWeb",
-        "projectPath": "C:\\Users\\furqa\\SampleAPI\\FirstWeb.csproj",
+        "projectPath": "c:\\Users\\furqa\\SampleAPI\\FirstWeb.csproj",
         "packagesPath": "C:\\Users\\furqa\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\furqa\\SampleAPI\\obj\\",
+        "outputPath": "c:\\Users\\furqa\\SampleAPI\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\furqa\\AppData\\Roaming\\NuGet\\NuGet.Config",
