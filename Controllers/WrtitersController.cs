@@ -37,7 +37,7 @@ public class WrtitersController : ControllerBase
 
     [HttpPost]
     [ProducesResponseType(typeof(Writer),200)]
-    public IActionResult CreateWriter(CreateWriterDTO writerModel)
+    public IActionResult CreateWriter(CreateWriterModel writerModel)
     {
         var writer = new Writer()
         {
@@ -75,7 +75,7 @@ public class WrtitersController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    public IActionResult PutWriter(int id, CreateWriterDTO writerModel)
+    public IActionResult PutWriter(int id, CreateWriterModel writerModel)
     {
         var writer = Writers.FirstOrDefault(y => y.Id == id);
         if (writer == null) return NotFound();
