@@ -2,7 +2,7 @@
 
 namespace FirstWeb.DTOS
 {
-    public class CreateWriterDTO
+    public class CreateWriterModel
     {
         public string FullName { get; set; }
         public DateTime BirthDate { get; set; }
