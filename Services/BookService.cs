@@ -59,7 +59,7 @@ public class BookService : IBookService
         throw new NotImplementedException();
     }
 
-    public BookModel Update(CreateBookModel updateBookModel)
+    public BookModel Update(long id, CreateBookModel updateBookModel)
     {
         throw new NotImplementedException();
     }
@@ -154,4 +154,5 @@ public class BookService : IBookService
         bookGenreCommand.Parameters.AddWithValue("@genreId", genreId);
         bookGenreCommand.ExecuteNonQuery();
     }
+
 }
