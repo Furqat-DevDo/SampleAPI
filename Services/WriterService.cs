@@ -39,15 +39,16 @@ public class WriterService : IWriterService
         findBookCommand.Parameters.AddWithValue("@name", writerModel.FullName);
         findBookCommand.Parameters.AddWithValue("@price", writerModel.BirthDate);
         using SQLiteDataReader reader = findBookCommand.ExecuteReader();
+
         if (reader.HasRows)
         {
-            return null;
+            throw new Exception("Invalid Paramters writer allready exist !!!!");
         }
 
 
         string insertQuery = "INSERT INTO Writers (FullName, BirthDate) VALUES (@fullname, @birthdate)";
 
-        using (SQLiteCommand command = new SQLiteCommand(insertQuery, conn))
+        using (SQLiteCommand command = new(insertQuery, conn))
         {
             command.Parameters.AddWithValue("@fullname", $"{writerModel.FullName}");
             command.Parameters.AddWithValue("@birthdate", writerModel.BirthDate);
@@ -76,8 +77,6 @@ public class WriterService : IWriterService
         using var command1 = new SQLiteCommand(deleteQuery1, connection);
         command1.Parameters.AddWithValue("@id", id);
         int rowsAffected1 = command1.ExecuteNonQuery();
-
-        
 
         if (rowsAffected1 > 0 )
         {

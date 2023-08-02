@@ -4,6 +4,7 @@ using FirstWeb.Services.Interfaces;
 using FirstWeb.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.Data.SQLite;
+using System.Data.SqlClient;
 
 namespace FirstWeb.Controllers;
 
@@ -37,9 +38,21 @@ public class WritersController : ControllerBase
     [ProducesResponseType(typeof(Writer),200)]
     public IActionResult CreateWriter(CreateWriterModel writerModel)
     {
-              
-        return Ok(_writerService.Create(writerModel));
-
+        try
+        {
+            var result  = _writerService.Create(writerModel);
+            return result is null ? 
+            new StatusCodeResult(StatusCodes.Status500InternalServerError) 
+            : Ok(result);
+        }
+        catch(SqlException)
+        {
+            return new StatusCodeResult(StatusCodes.Status500InternalServerError);
+        }
+        catch(Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }   
     }
 
     /// <summary>

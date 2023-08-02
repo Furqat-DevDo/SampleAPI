@@ -2,11 +2,6 @@
 using FirstWeb.Models;
 using FirstWeb.Services.Interfaces;
 using System.Data.SQLite;
-using static System.Reflection.Metadata.BlobBuilder;
-using System.Reflection.PortableExecutable;
-using System.Xml.Linq;
-using System.Net;
-using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace FirstWeb.Services;
 
