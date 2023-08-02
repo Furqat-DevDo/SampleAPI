@@ -6,6 +6,5 @@ public class Book
     public string Name { get; set; }
     public double Price { get; set; }
     public string AuthorName { get; set; }
-    public long WriterId { get; set; }
     public List<Genre> Genres { get; set; } = new();
 }

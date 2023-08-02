@@ -2,10 +2,6 @@
 using FirstWeb.Models;
 using FirstWeb.Services.Interfaces;
 using System.Data.SQLite;
-using static System.Reflection.Metadata.BlobBuilder;
-using System.Reflection.PortableExecutable;
-using System.Xml.Linq;
-using System.Net;
 
 namespace FirstWeb.Services;
 
@@ -13,21 +9,53 @@ public class BookService : IBookService
 {
     private const string connectionString = "Data source = mydata.db; Version =3";
 
+    private void CreateTables()
+    {
+        List<string> createTableQueries = new()
+        {
+            "CREATE TABLE IF NOT EXISTS Books (Id INTEGER PRIMARY KEY AUTOINCREMENT, Name TEXT, Price REAL, AuthorName TEXT)",
+            "CREATE TABLE IF NOT EXISTS Genres(Id INTEGER PRIMARY KEY AUTOINCREMENT,Name NVARCHAR(100) NOT NULL);",
+            "CREATE TABLE IF NOT EXISTS BookGenres (BookId INTEGER NOT NULL,GenreId INTEGER NOT NULL,PRIMARY KEY (BookId, GenreId),FOREIGN KEY (BookId) " +
+            "REFERENCES Books (Id),FOREIGN KEY (GenreId) REFERENCES Genres (Id));"
+        };
+
+        using SQLiteConnection conn = new(connectionString);
+
+        conn.Open();
+
+        foreach (var query in createTableQueries)
+        {
+            using SQLiteCommand command = new(query, conn);
+            command.ExecuteNonQuery();
+        }
+    }
+
     public BookModel Create(CreateBookModel createBookModel)
     {
-        CreateTables();
+        CreateTables();       
 
         using SQLiteConnection conn = new(connectionString);
         conn.Open();
 
-        string insertBookQuery = "INSERT INTO Books (Name, Price, AuthorName, WriterId) " +
-                                    "VALUES (@name, @price, @author, @writerId)";
+        string findBookQuery = "SELECT * FROM Books WHERE Name = @name and Price = @price and AuthorName = @authorName";
+        using SQLiteCommand findBookCommand = new(findBookQuery, conn);
+        findBookCommand.Parameters.AddWithValue("@name", createBookModel.Name);
+        findBookCommand.Parameters.AddWithValue("@price", createBookModel.Price);
+        findBookCommand.Parameters.AddWithValue("@authorName", createBookModel.AuthorName);
+
+        using SQLiteDataReader reader = findBookCommand.ExecuteReader();
+        if (reader.HasRows)
+        {
+            return null;
+        }
+        
+        string insertBookQuery = "INSERT INTO Books (Name, Price, AuthorName) " +
+                                    "VALUES (@name, @price, @author)";
         using (SQLiteCommand bookCommand = new(insertBookQuery, conn))
         {
             bookCommand.Parameters.AddWithValue("@name", $"{createBookModel.Name}");
             bookCommand.Parameters.AddWithValue("@price", createBookModel.Price);
             bookCommand.Parameters.AddWithValue("@author", $"{createBookModel.AuthorName}");
-            bookCommand.Parameters.AddWithValue("@writerId", $"{createBookModel.WriterId}");
             bookCommand.ExecuteNonQuery();
         }
 
@@ -37,37 +65,91 @@ public class BookService : IBookService
             bookId = Convert.ToInt64(getLastInsertRowIdCommand.ExecuteScalar());
         }
 
-
         foreach (var genre in createBookModel.Genres)
         {
             var genreId = GetOrCreateGenre(genre, conn);
             GetOrCreateBookGenre(bookId, genreId, conn);
         }
 
+        WriterService writerService = new WriterService();
+        CreateWriterModel writerModel = new CreateWriterModel()
+        {
+            FullName = createBookModel.AuthorName
+        };
+        long writerId = GetOrCreateWriter(writerModel, conn);
+        GetOrCreateWriterBooks(writerId, bookId, conn);
+        
         return GetById(bookId);
+    }
 
+    private static long GetOrCreateWriter(CreateWriterModel writer, SQLiteConnection conn)
+    {
+        string selectWriterQuery = "SELECT Id FROM Writers WHERE FullName = @name";
+        long writerId;
+        using SQLiteCommand selectWriterCommand = new(selectWriterQuery, conn);
+        selectWriterCommand.Parameters.AddWithValue("@name", writer.FullName);
+        var result = selectWriterCommand.ExecuteScalar();
+
+        if (result != null)
+        {
+            writerId = (long)(result);
+        }
+        else
+        {
+            string insertWriterQuery = "INSERT INTO Writers (FullName) VALUES (@name)";
+            using (SQLiteCommand writerCommand = new(insertWriterQuery, conn))
+            {
+                writerCommand.Parameters.AddWithValue("@name", writer.FullName);
+                writerCommand.ExecuteNonQuery();
+            }
+
+            using SQLiteCommand getLastInsertRowIdCommand = new("SELECT last_insert_rowid();", conn);
+            writerId = (long)getLastInsertRowIdCommand.ExecuteScalar();
+        }        
+
+        return writerId;
+    }
+
+    private static void GetOrCreateWriterBooks(long writerId, long bookId, SQLiteConnection connection)
+    {
+        string selectWriterBooksQuery = "SELECT WriterId, BookId FROM WriterBooks WHERE WriterId = @writerId and BookId = @bookId";
+        using SQLiteCommand selectWriterBooksCommand = new(selectWriterBooksQuery, connection);
+        selectWriterBooksCommand.Parameters.AddWithValue("@writerId", writerId);
+        selectWriterBooksCommand.Parameters.AddWithValue("@bookId", bookId);
+
+        var result = selectWriterBooksCommand.ExecuteScalar();
+
+        if (result is not null)
+        {
+            return;
+        }
+
+        string insertWriterBooksQuery = "INSERT INTO WriterBooks (WriterId, BookId) VALUES (@writerId, @bookId)";
+        using SQLiteCommand writerBooksCommand = new(insertWriterBooksQuery, connection);
+        writerBooksCommand.Parameters.AddWithValue("@writerId", writerId);
+        writerBooksCommand.Parameters.AddWithValue("@bookId", bookId);
+        writerBooksCommand.ExecuteNonQuery();
     }
 
     public bool Delete(long id)
     {
         CreateTables();
 
-        using (var connection = new SQLiteConnection(connectionString))
+        using var connection = new SQLiteConnection(connectionString);
+        
+        connection.Open();
+
+        string deleteQuery = "DELETE FROM Books WHERE Id = @id";
+        using var command = new SQLiteCommand(deleteQuery, connection);
+        command.Parameters.AddWithValue("@id", id);
+
+        int rowsAffected = command.ExecuteNonQuery();
+
+        if (rowsAffected > 0)
         {
-            connection.Open();
-
-            string deleteQuery = "DELETE FROM Books WHERE Id = @id";
-            using var command = new SQLiteCommand(deleteQuery, connection);
-            command.Parameters.AddWithValue("@id", id);
-
-            int rowsAffected = command.ExecuteNonQuery();
-
-            if (rowsAffected > 0)
-            {
-                return true;
-            }
+            return true;
         }
-
+        
         return false;
     }
 
@@ -93,7 +175,6 @@ public class BookService : IBookService
                         Id = Convert.ToInt64(reader["Id"]),
                         Name = (string)reader["Name"],
                         AuthorName = (string)reader["AuthorName"],
-                        WriterId = (long)reader["WriterId"],
                         Price = Convert.ToSingle(reader["Price"]),
                     };
 
@@ -108,7 +189,6 @@ public class BookService : IBookService
         return books.Select(b => new BookModel
         {
             AuthorName = b.AuthorName,
-            WriterId = b.WriterId,
             Price = b.Price,
             Genres = b.Genres.Select(g => new GenreModel
             {
@@ -142,7 +222,6 @@ public class BookService : IBookService
                 Id = Convert.ToInt64(reader["Id"]),
                 Name = (string)reader["Name"],
                 AuthorName = (string)reader["AuthorName"],
-                WriterId = (long)reader["WriterId"],
                 Price = Convert.ToSingle(reader["Price"]),
                 Genres = GetGenres(id, conn)
             };
@@ -150,7 +229,6 @@ public class BookService : IBookService
             return new BookModel
             {
                 AuthorName = book.AuthorName,
-                WriterId = book.WriterId,
                 Price = book.Price,
                 Genres = book.Genres.Select(g=>new GenreModel 
                 { 
@@ -173,13 +251,12 @@ public class BookService : IBookService
         using SQLiteConnection connection = new(connectionString);
         connection.Open();
 
-        string updateQuery = $"UPDATE Books SET Name = @name, Price = @price, AuthorName = @author, WriterId = @writerId WHERE Id = {id}";
+        string updateQuery = $"UPDATE Books SET Name = @name, Price = @price, AuthorName = @author WHERE Id = {id}";
 
         using SQLiteCommand command = new(updateQuery, connection);
         command.Parameters.AddWithValue("@name", updateBookModel.Name);
         command.Parameters.AddWithValue("@price", updateBookModel.Price);
         command.Parameters.AddWithValue("@author", updateBookModel.AuthorName);
-        command.Parameters.AddWithValue("@writerId", updateBookModel.WriterId);
 
         int rowsAffected = command.ExecuteNonQuery();
 
@@ -211,7 +288,6 @@ public class BookService : IBookService
                 return new BookModel
                 {
                     AuthorName = updatedModel.AuthorName,
-                    WriterId = updatedModel.WriterId,
                     Price = updatedModel.Price,
                     Genres = genres.Select(g => new GenreModel
                     {
@@ -226,28 +302,6 @@ public class BookService : IBookService
         }
 
         return null;
-    }
-
-
-    private void CreateTables()
-    {
-        List<string> createTableQueries = new()
-        {
-            "CREATE TABLE IF NOT EXISTS Books (Id INTEGER PRIMARY KEY AUTOINCREMENT, Name TEXT, Price REAL, AuthorName TEXT, WriterId INTEGER)",
-            "CREATE TABLE IF NOT EXISTS Genres(Id INTEGER PRIMARY KEY AUTOINCREMENT,Name NVARCHAR(100) NOT NULL);",
-            "CREATE TABLE IF NOT EXISTS BookGenres (BookId INTEGER NOT NULL,GenreId INTEGER NOT NULL,PRIMARY KEY (BookId, GenreId),FOREIGN KEY (BookId) " +
-            "REFERENCES Books (Id),FOREIGN KEY (GenreId) REFERENCES Genres (Id));"
-        };
-
-        using SQLiteConnection conn = new(connectionString);
-
-        conn.Open();
-
-        foreach (var query in createTableQueries)
-        {
-            using SQLiteCommand command = new(query, conn);
-            command.ExecuteNonQuery();
-        }
     }
 
     private static List<Genre> GetGenres(long bookId, SQLiteConnection conn)
